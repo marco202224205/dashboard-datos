@@ -1,0 +1,12 @@
+[
+  { "id": 1, "producto": "Laptop", "categoria": "Cómputo", "precio": 14500, "unidadesVendidas": 32 },
+  { "id": 2, "producto": "Mouse inalámbrico", "categoria": "Accesorios", "precio": 350, "unidadesVendidas": 120 },
+  { "id": 3, "producto": "Teclado mecánico", "categoria": "Accesorios", "precio": 1200, "unidadesVendidas": 58 },
+  { "id": 4, "producto": "Monitor 24 pulgadas", "categoria": "Cómputo", "precio": 3200, "unidadesVendidas": 41 },
+  { "id": 5, "producto": "Audífonos", "categoria": "Audio", "precio": 890, "unidadesVendidas": 76 },
+  { "id": 6, "producto": "Bocina Bluetooth", "categoria": "Audio", "precio": 760, "unidadesVendidas": 64 },
+  { "id": 7, "producto": "Memoria USB 64 GB", "categoria": "Almacenamiento", "precio": 180, "unidadesVendidas": 210 },
+  { "id": 8, "producto": "Disco duro externo", "categoria": "Almacenamiento", "precio": 1450, "unidadesVendidas": 37 },
+  { "id": 9, "producto": "Webcam HD", "categoria": "Accesorios", "precio": 640, "unidadesVendidas": 49 },
+  { "id": 10, "producto": "Impresora", "categoria": "Cómputo", "precio": 2900, "unidadesVendidas": 22 }
+]
