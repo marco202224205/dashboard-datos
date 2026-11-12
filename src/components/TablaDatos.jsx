@@ -26,29 +26,37 @@ const estilos = {
 const formatoMoneda = (numero) =>
   numero.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
-function TablaDatos({ datos }) {
+// Columnas por defecto: las de la tabla de ventas
+const columnasVentas = [
+  { clave: 'id', titulo: 'ID' },
+  { clave: 'producto', titulo: 'Producto' },
+  { clave: 'categoria', titulo: 'Categoría' },
+  { clave: 'precio', titulo: 'Precio', formato: formatoMoneda },
+  { clave: 'unidadesVendidas', titulo: 'Unidades vendidas' },
+  { clave: 'ingresos', titulo: 'Ingresos', formato: formatoMoneda }
+];
+
+function TablaDatos({ datos, columnas = columnasVentas }) {
   return (
     <div style={estilos.contenedor}>
       <table style={estilos.tabla}>
         <thead>
           <tr>
-            <th style={estilos.encabezado}>ID</th>
-            <th style={estilos.encabezado}>Producto</th>
-            <th style={estilos.encabezado}>Categoría</th>
-            <th style={estilos.encabezado}>Precio</th>
-            <th style={estilos.encabezado}>Unidades vendidas</th>
-            <th style={estilos.encabezado}>Ingresos</th>
+            {columnas.map((columna) => (
+              <th key={columna.clave} style={estilos.encabezado}>
+                {columna.titulo}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
           {datos.map((fila) => (
             <tr key={fila.id}>
-              <td style={estilos.celda}>{fila.id}</td>
-              <td style={estilos.celda}>{fila.producto}</td>
-              <td style={estilos.celda}>{fila.categoria}</td>
-              <td style={estilos.celda}>{formatoMoneda(fila.precio)}</td>
-              <td style={estilos.celda}>{fila.unidadesVendidas}</td>
-              <td style={estilos.celda}>{formatoMoneda(fila.ingresos)}</td>
+              {columnas.map((columna) => (
+                <td key={columna.clave} style={estilos.celda}>
+                  {columna.formato ? columna.formato(fila[columna.clave]) : fila[columna.clave]}
+                </td>
+              ))}
             </tr>
           ))}
         </tbody>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import TarjetaMetrica from './components/TarjetaMetrica';
 import TablaDatos from './components/TablaDatos';
+import PanelAnalitico from './components/PanelAnalitico';
 import { obtenerDatosVisualizacion, procesarDatos } from './services/dataService';
 
 const estilos = {
@@ -78,6 +79,9 @@ function App() {
             <TablaDatos datos={datos.registros} />
           </>
         )}
+
+        <h2 style={estilos.seccion}>Panel analítico: clima histórico (API externa)</h2>
+        <PanelAnalitico />
       </main>
     </div>
   );
