@@ -1,70 +1,82 @@
 import { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
+import DashboardLayout from './components/DashboardLayout';
+import PanelFiltros from './components/PanelFiltros';
 import TarjetaMetrica from './components/TarjetaMetrica';
+import GraficaBarras from './components/GraficaBarras';
 import TablaDatos from './components/TablaDatos';
-import PanelAnalitico from './components/PanelAnalitico';
-import { obtenerDatosVisualizacion, procesarDatos } from './services/dataService';
-
-const estilos = {
-  contenido: {
-    maxWidth: '1100px',
-    margin: '0 auto',
-    padding: '24px'
-  },
-  seccion: {
-    margin: '28px 0 12px',
-    color: '#2c3e50'
-  },
-  tarjetas: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '16px'
-  },
-  mensaje: {
-    padding: '24px',
-    color: '#5d6d7e'
-  }
-};
+import {
+  obtenerCategorias,
+  obtenerDatosVisualizacion,
+  procesarDatos
+} from './services/dataService';
 
 const formatoMoneda = (numero) =>
   numero.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
+const columnasVentas = [
+  { clave: 'id', titulo: 'ID' },
+  { clave: 'producto', titulo: 'Producto' },
+  { clave: 'categoria', titulo: 'Categoría' },
+  { clave: 'fecha', titulo: 'Fecha' },
+  { clave: 'precio', titulo: 'Precio', formato: formatoMoneda },
+  { clave: 'unidadesVendidas', titulo: 'Unidades' },
+  { clave: 'ingresos', titulo: 'Ingresos', formato: formatoMoneda }
+];
+
+const categorias = obtenerCategorias();
+
 function App() {
-  // Estado: dataset procesado, indicador de carga y posible error
+  // Estado global de los filtros: lo comparten el panel y todas las visualizaciones
+  const [filtros, setFiltros] = useState({ categoria: 'todas', desde: '', hasta: '' });
   const [datos, setDatos] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
 
-  // Al montar la aplicación, pide los datos al servicio
+  // Escucha los cambios de filtros: cada vez que cambian, vuelve a pedir y procesar los datos
   useEffect(() => {
+    let vigente = true; // evita aplicar una respuesta vieja si el filtro cambia rápido
+
     async function cargarDatos() {
+      setCargando(true);
+      setError(null);
+
       try {
-        const respuesta = await obtenerDatosVisualizacion();
-        setDatos(procesarDatos(respuesta));
+        const respuesta = await obtenerDatosVisualizacion(filtros);
+        if (vigente) setDatos(procesarDatos(respuesta));
       } catch (e) {
         console.error(e);
-        setError('No se pudieron cargar los datos.');
+        if (vigente) setError('No se pudieron cargar los datos.');
       } finally {
-        setCargando(false);
+        if (vigente) setCargando(false);
       }
     }
 
     cargarDatos();
-  }, []);
+
+    return () => {
+      vigente = false;
+    };
+  }, [filtros]);
+
+  let estado = null;
+  if (error) estado = error;
+  else if (!datos && cargando) estado = 'Cargando datos...';
+  else if (cargando) estado = 'Actualizando...';
 
   return (
     <div className="app">
       <Navbar />
 
-      <main style={estilos.contenido}>
-        {cargando && <p style={estilos.mensaje}>Cargando datos...</p>}
-        {error && <p style={estilos.mensaje}>{error}</p>}
-
-        {datos && (
-          <>
-            <h2 style={estilos.seccion}>Métricas clave</h2>
-            <div style={estilos.tarjetas}>
-              <TarjetaMetrica titulo="Total de productos" valor={datos.totalProductos} />
+      <DashboardLayout
+        barra={
+          <PanelFiltros filtros={filtros} setFiltros={setFiltros} categorias={categorias} />
+        }
+        estado={estado}
+        tarjetas={
+          datos && (
+            <>
+              <TarjetaMetrica titulo="Ventas registradas" valor={datos.totalProductos} />
               <TarjetaMetrica
                 titulo="Unidades vendidas"
                 valor={datos.unidadesTotales.toLocaleString('es-MX')}
@@ -73,16 +85,38 @@ function App() {
                 titulo="Ingresos totales"
                 valor={formatoMoneda(datos.ingresosTotales)}
               />
-            </div>
-
-            <h2 style={estilos.seccion}>Detalle de ventas</h2>
-            <TablaDatos datos={datos.registros} />
-          </>
-        )}
-
-        <h2 style={estilos.seccion}>Panel analítico: clima histórico (API externa)</h2>
-        <PanelAnalitico />
-      </main>
+              <TarjetaMetrica
+                titulo="Ingreso promedio por venta"
+                valor={formatoMoneda(datos.promedioVenta)}
+              />
+            </>
+          )
+        }
+        grafica={
+          datos && (
+            <>
+              <h2>Ingresos por categoría</h2>
+              <GraficaBarras
+                etiquetas={datos.categorias}
+                valores={datos.ingresosPorCategoria}
+                titulo="Ingresos (MXN)"
+              />
+            </>
+          )
+        }
+        tabla={
+          datos && (
+            <>
+              <h2>Detalle de ventas</h2>
+              {datos.registros.length > 0 ? (
+                <TablaDatos datos={datos.registros} columnas={columnasVentas} />
+              ) : (
+                <p className="dashboard__estado">No hay ventas con los filtros seleccionados.</p>
+              )}
+            </>
+          )
+        }
+      />
     </div>
   );
 }

@@ -1,26 +1,51 @@
 import datosVentas from '../data/ventas.json';
 import apiClient from './apiClient';
 
-// Simula una petición HTTP: devuelve una Promesa con el JSON local tras una breve espera
-export async function obtenerDatosVisualizacion() {
-  await new Promise((resolver) => setTimeout(resolver, 800));
-  return datosVentas;
+// Lista de categorías disponibles para el filtro (la primera opción es "todas")
+export function obtenerCategorias() {
+  return ['todas', ...new Set(datosVentas.map((venta) => venta.categoria))];
 }
 
-// Prepara los datos para el renderizado: calcula ingresos y extrae etiquetas, valores y totales
+// Simula una petición HTTP con filtros (categoría y rango de fechas) y devuelve una Promesa
+export async function obtenerDatosVisualizacion(filtros = {}) {
+  const { categoria = 'todas', desde = '', hasta = '' } = filtros;
+
+  await new Promise((resolver) => setTimeout(resolver, 400));
+
+  return datosVentas.filter((venta) => {
+    const coincideCategoria = categoria === 'todas' || venta.categoria === categoria;
+    const despuesDeDesde = !desde || venta.fecha >= desde;
+    const antesDeHasta = !hasta || venta.fecha <= hasta;
+    return coincideCategoria && despuesDeDesde && antesDeHasta;
+  });
+}
+
+// Prepara los datos para el renderizado: calcula ingresos, agrupa por categoría y obtiene totales
 export function procesarDatos(datos) {
   const registros = datos.map((dato) => ({
     ...dato,
     ingresos: dato.precio * dato.unidadesVendidas
   }));
 
+  // Ingresos agrupados por categoría (para la gráfica)
+  const porCategoria = {};
+  registros.forEach((registro) => {
+    porCategoria[registro.categoria] =
+      (porCategoria[registro.categoria] || 0) + registro.ingresos;
+  });
+
+  const ingresosTotales = registros.reduce((suma, registro) => suma + registro.ingresos, 0);
+
   return {
     registros,
     etiquetas: registros.map((registro) => registro.producto),
     valores: registros.map((registro) => registro.ingresos),
+    categorias: Object.keys(porCategoria),
+    ingresosPorCategoria: Object.values(porCategoria),
     totalProductos: registros.length,
     unidadesTotales: registros.reduce((suma, registro) => suma + registro.unidadesVendidas, 0),
-    ingresosTotales: registros.reduce((suma, registro) => suma + registro.ingresos, 0)
+    ingresosTotales,
+    promedioVenta: registros.length > 0 ? ingresosTotales / registros.length : 0
   };
 }
 

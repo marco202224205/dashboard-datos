@@ -1,8 +1,10 @@
 const estilos = {
   barra: {
     display: 'flex',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: '8px 16px',
     backgroundColor: '#2c3e50',
     color: 'white',
     padding: '14px 24px'
