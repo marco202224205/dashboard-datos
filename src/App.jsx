@@ -1,14 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar';
 import DashboardLayout from './components/DashboardLayout';
 import PanelFiltros from './components/PanelFiltros';
 import TarjetaMetrica from './components/TarjetaMetrica';
-import GraficaBarras from './components/GraficaBarras';
+import GraficoTendencia from './components/charts/GraficoTendencia';
+import GraficoComparativo from './components/charts/GraficoComparativo';
 import TablaDatos from './components/TablaDatos';
 import {
   obtenerCategorias,
   obtenerDatosVisualizacion,
-  procesarDatos
+  procesarDatos,
+  formatearParaGrafico
 } from './services/dataService';
 
 const formatoMoneda = (numero) =>
@@ -59,6 +61,16 @@ function App() {
     };
   }, [filtros]);
 
+  // Datos formateados para los gráficos; se recalculan solo cuando cambian los datos filtrados
+  const datosTendencia = useMemo(
+    () => formatearParaGrafico(datos ? datos.registros : [], 'fecha'),
+    [datos]
+  );
+  const datosComparativo = useMemo(
+    () => formatearParaGrafico(datos ? datos.registros : [], 'categoria'),
+    [datos]
+  );
+
   let estado = null;
   if (error) estado = error;
   else if (!datos && cargando) estado = 'Cargando datos...';
@@ -92,14 +104,18 @@ function App() {
             </>
           )
         }
-        grafica={
+        graficos={
           datos && (
             <>
-              <h2>Ingresos por categoría</h2>
-              <GraficaBarras
-                etiquetas={datos.categorias}
-                valores={datos.ingresosPorCategoria}
-                titulo="Ingresos (MXN)"
+              <GraficoTendencia
+                labels={datosTendencia.labels}
+                values={datosTendencia.values}
+                titulo="Evolución de los ingresos por fecha"
+              />
+              <GraficoComparativo
+                labels={datosComparativo.labels}
+                values={datosComparativo.values}
+                titulo="Ingresos por categoría"
               />
             </>
           )

@@ -49,6 +49,35 @@ export function procesarDatos(datos) {
   };
 }
 
+// Convierte los datos crudos en los arreglos que necesitan las gráficas:
+// labels (eje X) y values (eje Y), sumando los ingresos por categoría o por fecha
+export function formatearParaGrafico(datosCrudos, agruparPor = 'categoria') {
+  // Si no hay datos, devuelve arreglos vacíos para evitar errores de renderizado
+  if (!Array.isArray(datosCrudos) || datosCrudos.length === 0) {
+    return { labels: [], values: [] };
+  }
+
+  const acumulado = {};
+
+  datosCrudos.forEach((dato) => {
+    const clave = dato[agruparPor];
+    const ingresos = dato.ingresos ?? dato.precio * dato.unidadesVendidas;
+    acumulado[clave] = (acumulado[clave] || 0) + ingresos;
+  });
+
+  const labels = Object.keys(acumulado);
+
+  // Las fechas se ordenan cronológicamente (el formato AAAA-MM-DD se ordena como texto)
+  if (agruparPor === 'fecha') {
+    labels.sort();
+  }
+
+  return {
+    labels,
+    values: labels.map((etiqueta) => acumulado[etiqueta])
+  };
+}
+
 const redondear = (numero) => Number(numero.toFixed(1));
 
 // Consulta la API externa (Open-Meteo) y devuelve la serie de tiempo climática ya limpia

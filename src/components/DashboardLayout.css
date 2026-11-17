@@ -65,3 +65,15 @@
     position: static;
   }
 }
+
+/* Gráficos: dos columnas en pantallas amplias, una sola columna en pantallas angostas */
+.dashboard__graficos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+/* Permite que cada gráfico se encoja dentro de la cuadrícula sin desbordarse */
+.dashboard__graficos > * {
+  min-width: 0;
+}
